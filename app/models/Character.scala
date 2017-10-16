@@ -36,3 +36,8 @@ object UpdateInput {
   implicit val writes: Writes[UpdateInput] = Json.writes[UpdateInput]
 }
 
+case class DeleteInput (id : String)
+object DeleteInput {
+  implicit val reads: Reads[DeleteInput] = Json.reads[DeleteInput]
+  implicit val writes: Writes[DeleteInput] = Json.writes[DeleteInput]
+}
