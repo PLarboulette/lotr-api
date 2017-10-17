@@ -3,11 +3,13 @@ package actors
 import akka.actor.{Actor, ActorLogging}
 import akka.pattern.pipe
 import akka.util.Timeout
-import models._
+import models.Character.{CreateInput, DeleteInput, UpdateInput}
 import services.CharacterService
 
 import scala.concurrent.duration._
 
+case class FindMessage()
+case class FindByIdMessage(id : String)
 case class CreateMessage (createInput : CreateInput)
 case class UpdateMessage (updateInput : UpdateInput)
 case class DeleteMessage (deleteInput : DeleteInput)
@@ -28,24 +30,24 @@ class CharacterActor extends Actor with ActorLogging {
     println("CharacterActor killed !")
   }
 
-  implicit val logger = true
+  implicit val logger: Boolean = true
 
   override def receive: PartialFunction[Any, Unit] = {
 
-    case GetAll() =>
-      CharacterService.getAll() pipeTo sender
+    case FindMessage() =>
+      CharacterService.find().pipeTo(sender)
 
-    case GetById(id) =>
-      CharacterService.getById(id) pipeTo sender
+    case FindByIdMessage(id) =>
+      CharacterService.findById(id).pipeTo(sender)
 
     case CreateMessage(createInput) =>
-      CharacterService.create(createInput) pipeTo sender
+      CharacterService.create(createInput).pipeTo(sender)
 
     case UpdateMessage(updateInput) =>
-      CharacterService.update(updateInput) pipeTo sender
+      CharacterService.update(updateInput).pipeTo(sender)
 
     case DeleteMessage(deleteInput) =>
-      CharacterService.delete(deleteInput) pipeTo sender
+      CharacterService.delete(deleteInput).pipeTo(sender)
   }
 }
 

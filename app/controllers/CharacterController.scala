@@ -2,11 +2,13 @@ package controllers
 
 import javax.inject._
 
-import actors.{CharacterActor, CreateMessage, UpdateMessage}
+import actors._
 import akka.actor.{ActorRef, ActorSystem, Props}
 import akka.pattern.ask
 import akka.util.Timeout
-import models.{Character, CreateInput, GetAll, GetById, UpdateInput}
+import models.Character
+import models.Character.{CreateInput, UpdateInput}
+import org.mongodb.scala.Completed
 import play.api.libs.json._
 import play.api.mvc._
 
@@ -21,33 +23,26 @@ class CharacterController @Inject()(cc: ControllerComponents, actorSystem: Actor
 
   implicit val timeout : Timeout = 5.seconds
 
-
-
-  def getAll : Action[AnyContent] = Action.async {
-    (characterActor ? GetAll()).mapTo[List[Character]].map {
-      characters =>
-        Ok(s"${characters.size}")
-    }
+  def find : Action[AnyContent] = Action.async {
+    (characterActor ? FindMessage()).mapTo[List[Character]].map(characters => Ok(s"$characters"))
   }
 
-  def getById(id : String): Action[AnyContent] = Action.async {
-    (characterActor ? GetById(id)).mapTo[List[Character]].map {
-      characters =>
-        Ok(s"${characters.size}")
-    }
+  def findById(id : String): Action[AnyContent] = Action.async {
+    (characterActor ? FindByIdMessage(id)).mapTo[Option[Character]].map(character => Ok(s"$character"))
   }
 
   def create(): Action[JsValue] = Action.async(parse.json) {
     request =>
       request.body.validate[CreateInput].map{
         case (createInput) =>
-          (characterActor ? CreateMessage(createInput)).mapTo[Try[Character]].map {
+          (characterActor ? CreateMessage(createInput)).mapTo[Completed].map {
             character =>
-              Ok(s"Hello ${character.map(_.name).getOrElse("No name")}")
+              println(character)
+              Ok(s"Hello ${character.toString}")
           }
 
       }.recoverTotal{
-        e => Future.successful(BadRequest("Detected error:"+ JsError.toJson(e)))
+        e => Future.successful(BadRequest(s"${JsError.toJson(e)}"))
       }
   }
 
@@ -60,11 +55,7 @@ class CharacterController @Inject()(cc: ControllerComponents, actorSystem: Actor
               Ok(s"Hello ${character.map(_.name).getOrElse("No name")}")
           }
       }.recoverTotal{
-        e => Future.successful(BadRequest("Detected error:"+ JsError.toJson(e)))
+        e => Future.successful(BadRequest(s"s${JsError.toJson(e)}"))
       }
-
   }
-
-
-
 }
