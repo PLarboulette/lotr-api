@@ -12,3 +12,5 @@ GET     /characters                  controllers.CharacterController.find()
 GET     /characters/:id              controllers.CharacterController.findById(id : String)
 
 POST     /characters                controllers.CharacterController.create()
+PUT      /characters                controllers.CharacterController.update()
+DELETE   /characters/:id            controllers.CharacterController.delete(id : String)

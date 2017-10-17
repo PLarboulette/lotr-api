@@ -7,14 +7,13 @@ import akka.actor.{ActorRef, ActorSystem, Props}
 import akka.pattern.ask
 import akka.util.Timeout
 import models.Character
-import models.Character.{CreateInput, UpdateInput}
+import models.Character.{CreateInput, DeleteInput, UpdateInput}
 import org.mongodb.scala.Completed
 import play.api.libs.json._
 import play.api.mvc._
 
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.Try
 
 @Singleton
 class CharacterController @Inject()(cc: ControllerComponents, actorSystem: ActorSystem)(implicit exec: ExecutionContext) extends AbstractController(cc){
@@ -50,12 +49,25 @@ class CharacterController @Inject()(cc: ControllerComponents, actorSystem: Actor
     request =>
       request.body.validate[UpdateInput].map {
         case (updateInput) =>
-          (characterActor ? UpdateMessage(updateInput)).mapTo[Try[Character]].map {
+          (characterActor ? UpdateMessage(updateInput)).mapTo[Either[String, Boolean]].map {
             character =>
-              Ok(s"Hello ${character.map(_.name).getOrElse("No name")}")
+              if (character.isRight) {
+                Ok(s"${character.right.get}")
+              } else {
+                Ok(s"${character.left.get}")
+              }
           }
       }.recoverTotal{
         e => Future.successful(BadRequest(s"s${JsError.toJson(e)}"))
       }
   }
+
+  def delete(id : String): Action[AnyContent] = Action.async {
+    (characterActor ? DeleteMessage(DeleteInput(id))).mapTo[Boolean].map {
+      character =>
+        Ok(s"$character")
+    }
+  }
+
+
 }

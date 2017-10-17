@@ -12,7 +12,7 @@ case class FindMessage()
 case class FindByIdMessage(id : String)
 case class CreateMessage (createInput : CreateInput)
 case class UpdateMessage (updateInput : UpdateInput)
-case class DeleteMessage (deleteInput : DeleteInput)
+case class DeleteMessage (deleteInput: DeleteInput)
 
 // ------------------ Entry Point ------------------ //
 
@@ -50,4 +50,3 @@ class CharacterActor extends Actor with ActorLogging {
       CharacterService.delete(deleteInput).pipeTo(sender)
   }
 }
-
